@@ -2,7 +2,6 @@ import gleam/string
 import gleam/list
 import gleam/int
 import helpers
-import gleam/io
 
 type File {
   File(name: String, size: Int)
@@ -18,7 +17,8 @@ pub fn pt_1(input: String) {
 }
 
 pub fn pt_2(input: String) {
-  todo
+  assert 24933642 = do_part2(test_input())
+  do_part2(input)
 }
 
 fn do_part1(input) {
@@ -28,6 +28,21 @@ fn do_part1(input) {
   |> return_to_root()
   |> find_sizes_below(100000)
   |> int.sum()
+}
+
+fn do_part2(input) {
+  let root =
+    input
+    |> helpers.lines()
+    |> list.fold([], fn(env, line) { process_line(env, line) })
+    |> return_to_root()
+
+  let free_space = 70000000 - root.size
+  let have_to_delete = 30000000 - free_space
+
+  root
+  |> find_sizes_above(have_to_delete)
+  |> list.fold(root.size, fn(min, dir_size) { int.min(min, dir_size) })
 }
 
 fn test_input() {
@@ -77,7 +92,7 @@ fn file(env, name, size) {
 }
 
 fn return_to_root(env: List(Dir)) {
-  let [curr, ..rest] = env
+  let [curr, ..] = env
   case curr.name == "/" {
     True -> curr
     False -> return_to_root(go_up(env))
@@ -90,6 +105,17 @@ fn find_sizes_below(dir: Dir, limit) -> List(Int) {
     |> list.map(fn(dirr) { find_sizes_below(dirr, limit) })
     |> list.flatten()
   case dir.size <= limit {
+    True -> [dir.size, ..dir_sizes]
+    False -> dir_sizes
+  }
+}
+
+fn find_sizes_above(dir: Dir, limit) -> List(Int) {
+  let dir_sizes =
+    dir.dirs
+    |> list.map(fn(dirr) { find_sizes_above(dirr, limit) })
+    |> list.flatten()
+  case dir.size >= limit {
     True -> [dir.size, ..dir_sizes]
     False -> dir_sizes
   }
