@@ -12,8 +12,8 @@ in pkgs.mkShell rec {
       shellcheck
       shfmt
 
-      alejandra
       nil
+      nixfmt
 
       rebar
       rebar3
